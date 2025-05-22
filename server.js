@@ -14,19 +14,29 @@ app.post("/scrape", async (req, res) => {
 
   console.log("🔍 Incoming request:", query);
 
+  let browser;
   try {
-    const browser = await puppeteer.launch({
+    const path = await chromium.executablePath();
+    console.log("🧠 Chromium path:", path);
+
+    browser = await puppeteer.launch({
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath() || "/usr/bin/chromium-browser",
-      headless: chromium.headless,
+      executablePath: path,
+      headless: true,
       ignoreHTTPSErrors: true,
+      env: {
+        ...process.env,
+        DISPLAY: ":99.0"
+      }
     });
 
     console.log("✅ Browser launched");
 
     const page = await browser.newPage();
-    await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36");
+    await page.setUserAgent(
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36"
+    );
 
     console.log("🌐 Navigating to:", url);
     await page.goto(url, { waitUntil: "domcontentloaded", timeout: 20000 });
@@ -45,8 +55,10 @@ app.post("/scrape", async (req, res) => {
     console.log("✅ Scrape success:", result);
     await browser.close();
     res.json(result);
+
   } catch (err) {
     console.error("❌ Scrape failed:", err.message);
+    if (browser) await browser.close();
     res.status(500).json({ error: "Scrape failed", details: err.message });
   }
 });
