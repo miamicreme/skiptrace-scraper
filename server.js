@@ -1,6 +1,10 @@
 const express = require("express");
 const cors = require("cors");
-const { chromium } = require("playwright");
+// OLD
+// const { chromium } = require("playwright");
+
+// NEW
+const chromium = require("playwright-aws-lambda").chromium;
 
 const app = express();
 app.use(cors());
