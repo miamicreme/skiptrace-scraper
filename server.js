@@ -15,14 +15,19 @@ app.post("/scrape", async (req, res) => {
   console.log("🔍 Incoming request:", query);
 
   try {
-    console.log("🔧 Launching browser...");
-    const browser = await puppeteer.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath(),
-      headless: chromium.headless,
-    });
-    console.log("✅ Browser launched");
+console.log("🔧 Launching browser...");
+
+const path = await chromium.executablePath();
+console.log("🧠 Chromium path:", path);  // NEW LOG LINE
+
+const browser = await puppeteer.launch({
+  args: chromium.args,
+  defaultViewport: chromium.defaultViewport,
+  executablePath: path,
+  headless: chromium.headless,
+});
+console.log("✅ Browser launched");
+
 
     const page = await browser.newPage();
     console.log("🌐 Navigating to:", url);
