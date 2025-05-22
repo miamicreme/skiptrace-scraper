@@ -1,4 +1,3 @@
-
 const express = require("express");
 const cors = require("cors");
 const { chromium } = require("playwright");
@@ -11,12 +10,18 @@ app.post("/scrape", async (req, res) => {
   const { name, city, state } = req.body;
   const query = `${name} ${city} ${state}`;
 
+  console.log("🔍 Incoming request:", query);
+
   try {
     const browser = await chromium.launch({ headless: true });
-    const page = await browser.newPage();
+    console.log("✅ Browser launched");
 
+    const page = await browser.newPage();
     await page.goto(`https://www.truepeoplesearch.com/results?name=${encodeURIComponent(query)}`);
+    console.log("✅ Page loaded");
+
     await page.waitForSelector(".card-summary", { timeout: 10000 });
+    console.log("✅ Selector found");
 
     const result = await page.evaluate(() => {
       const name = document.querySelector(".card-summary h2")?.innerText.trim() || "N/A";
@@ -25,13 +30,15 @@ app.post("/scrape", async (req, res) => {
       return { name, phone, address };
     });
 
+    console.log("✅ Scrape success:", result);
     await browser.close();
     res.json(result);
+
   } catch (error) {
-    console.error("Scrape failed:", error.message);
+    console.error("❌ Scrape failed:", error.message);
     res.status(500).json({ error: "Scrape failed", details: error.message });
   }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
