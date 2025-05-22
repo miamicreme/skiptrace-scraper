@@ -1,10 +1,7 @@
 const express = require("express");
 const cors = require("cors");
-// OLD
-// const { chromium } = require("playwright");
-
-// NEW
-const chromium = require("playwright-aws-lambda").chromium;
+const chromium = require("@sparticuz/chromium");
+const puppeteer = require("puppeteer-core");
 
 const app = express();
 app.use(cors());
@@ -13,19 +10,21 @@ app.use(express.json());
 app.post("/scrape", async (req, res) => {
   const { name, city, state } = req.body;
   const query = `${name} ${city} ${state}`;
+  const url = `https://www.truepeoplesearch.com/results?name=${encodeURIComponent(query)}`;
 
   console.log("🔍 Incoming request:", query);
 
   try {
-    const browser = await chromium.launch({ headless: true });
-    console.log("✅ Browser launched");
+    const browser = await puppeteer.launch({
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
+    });
 
     const page = await browser.newPage();
-    await page.goto(`https://www.truepeoplesearch.com/results?name=${encodeURIComponent(query)}`);
-    console.log("✅ Page loaded");
-
+    await page.goto(url, { waitUntil: "domcontentloaded" });
     await page.waitForSelector(".card-summary", { timeout: 10000 });
-    console.log("✅ Selector found");
 
     const result = await page.evaluate(() => {
       const name = document.querySelector(".card-summary h2")?.innerText.trim() || "N/A";
@@ -38,9 +37,9 @@ app.post("/scrape", async (req, res) => {
     await browser.close();
     res.json(result);
 
-  } catch (error) {
-    console.error("❌ Scrape failed:", error.message);
-    res.status(500).json({ error: "Scrape failed", details: error.message });
+  } catch (err) {
+    console.error("❌ Scrape failed:", err.message);
+    res.status(500).json({ error: "Scrape failed", details: err.message });
   }
 });
 
