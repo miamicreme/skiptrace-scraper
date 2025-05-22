@@ -15,16 +15,22 @@ app.post("/scrape", async (req, res) => {
   console.log("🔍 Incoming request:", query);
 
   try {
+    console.log("🔧 Launching browser...");
     const browser = await puppeteer.launch({
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
       executablePath: await chromium.executablePath(),
       headless: chromium.headless,
     });
+    console.log("✅ Browser launched");
 
     const page = await browser.newPage();
+    console.log("🌐 Navigating to:", url);
     await page.goto(url, { waitUntil: "domcontentloaded" });
+    console.log("✅ Page loaded");
+
     await page.waitForSelector(".card-summary", { timeout: 10000 });
+    console.log("✅ Selector found");
 
     const result = await page.evaluate(() => {
       const name = document.querySelector(".card-summary h2")?.innerText.trim() || "N/A";
