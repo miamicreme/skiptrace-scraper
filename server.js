@@ -58,6 +58,7 @@ app.post("/scrape", async (req, res) => {
 
   } catch (err) {
     console.error("❌ Scrape failed:", err.message);
+console.error(err);  // 👈 FULL ERROR STACK
     if (browser) await browser.close();
     res.status(500).json({ error: "Scrape failed", details: err.message });
   }
