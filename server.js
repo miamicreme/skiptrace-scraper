@@ -52,19 +52,10 @@ app.post("/scrape", async (req, res) => {
     await page.goto(url, { waitUntil: "domcontentloaded", timeout: 20000 });
     console.log("✅ Page loaded");
 
-    await page.waitForSelector(".card-summary", { timeout: 10000 });
-    console.log("✅ Selector found");
-
-    const result = await page.evaluate(() => {
-      const name = document.querySelector(".card-summary h2")?.innerText.trim() || "N/A";
-      const phone = document.querySelector(".content-section ul li")?.innerText.trim() || "N/A";
-      const address = document.querySelector(".content-section .link-to-more")?.innerText.trim() || "N/A";
-      return { name, phone, address };
-    });
-
-    console.log("✅ Scrape success:", result);
+    const html = await page.content();
+    console.log("🔎 First 500 chars of page:", html.slice(0, 500));
     await browser.close();
-    res.json(result);
+    res.json({ snippet: html.slice(0, 500) });
 
   } catch (err) {
     console.error("❌ Scrape failed:", err.message);
