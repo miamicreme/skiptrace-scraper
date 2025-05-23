@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const chromium = require("@sparticuz/chromium");
 const puppeteer = require("puppeteer-core");
 
 const app = express();
@@ -15,21 +16,15 @@ app.post("/scrape", async (req, res) => {
 
   let browser;
   try {
-    const executablePath = "/usr/bin/chromium-browser";
-    console.log("🧠 Chromium path (forced):", executablePath);
+    const executablePath = await chromium.executablePath();
+    process.env.CHROME_PATH = executablePath;
+    console.log("🧠 Using Chromium path:", executablePath);
 
     browser = await puppeteer.launch({
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-accelerated-2d-canvas",
-        "--no-zygote",
-        "--disable-gpu"
-      ],
-      defaultViewport: { width: 1280, height: 720 },
-      executablePath: executablePath,
-      headless: true,
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath,
+      headless: chromium.headless,
       ignoreHTTPSErrors: true,
     });
 
