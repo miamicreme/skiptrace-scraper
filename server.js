@@ -10,7 +10,7 @@ app.use(express.json());
 app.post("/scrape", async (req, res) => {
   const { name, city, state } = req.body;
   const query = `${name} ${city} ${state}`;
-  const url = `https://www.truepeoplesearch.com/results?name=${encodeURIComponent(query)}`;
+const url = `https://www.fastpeoplesearch.com/name/${encodeURIComponent(name)}/${encodeURIComponent(city)}-${state}`;
 
   console.log("🔍 Incoming request:", query);
 
