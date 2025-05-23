@@ -18,14 +18,27 @@ app.post("/scrape", async (req, res) => {
   try {
     const executablePath = await chromium.executablePath();
     process.env.CHROME_PATH = executablePath;
-    console.log("🧠 Using Chromium path:", executablePath);
+    console.log("🧠 Chromium path set:", executablePath);
 
     browser = await puppeteer.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
       executablePath,
-      headless: chromium.headless,
+      headless: true,
+      args: [
+        ...chromium.args,
+        "--disable-dev-shm-usage",
+        "--disable-gpu",
+        "--disable-software-rasterizer",
+        "--disable-setuid-sandbox",
+        "--no-sandbox",
+        "--no-zygote"
+      ],
+      defaultViewport: chromium.defaultViewport,
       ignoreHTTPSErrors: true,
+      env: {
+        ...process.env,
+        PUPPETEER_EXECUTABLE_PATH: executablePath
+      },
+      dumpio: true
     });
 
     console.log("✅ Browser launched");
