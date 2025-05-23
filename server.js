@@ -1,6 +1,5 @@
 const express = require("express");
 const cors = require("cors");
-const chromium = require("@sparticuz/chromium");
 const puppeteer = require("puppeteer-core");
 
 const app = express();
@@ -16,19 +15,22 @@ app.post("/scrape", async (req, res) => {
 
   let browser;
   try {
-    const path = await chromium.executablePath();
-    console.log("🧠 Chromium path:", path);
+    const executablePath = "/usr/bin/chromium-browser";
+    console.log("🧠 Chromium path (forced):", executablePath);
 
     browser = await puppeteer.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath: path,
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-accelerated-2d-canvas",
+        "--no-zygote",
+        "--disable-gpu"
+      ],
+      defaultViewport: { width: 1280, height: 720 },
+      executablePath: executablePath,
       headless: true,
       ignoreHTTPSErrors: true,
-      env: {
-        ...process.env,
-        DISPLAY: ":99.0"
-      }
     });
 
     console.log("✅ Browser launched");
@@ -58,7 +60,7 @@ app.post("/scrape", async (req, res) => {
 
   } catch (err) {
     console.error("❌ Scrape failed:", err.message);
-console.error(err);  // 👈 FULL ERROR STACK
+    console.error(err);
     if (browser) await browser.close();
     res.status(500).json({ error: "Scrape failed", details: err.message });
   }
